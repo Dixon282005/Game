@@ -1,13 +1,13 @@
 const config = {
-    width: 320 * 2,
-    height: 180 * 2,
+    width: 320*2,
+    height: 180*2,
     parent: 'container',
     type: Phaser.AUTO,
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: -100 }, // Gravedad negativa (flotabilidad)
-            debug: true // Opcional: ver hitboxes
+            gravity: { y: 0 }, // Sin gravedad para que no se mueva solo
+            debug: true
         }
     },
     scene: {
@@ -20,43 +20,71 @@ const config = {
 var game = new Phaser.Game(config);
 
 function preload() {
-    this.load.image('submarine', 'src/assets/player1.png');
+    this.load.image('submarine', 'src/assets/submar.png');
+    this.load.image('bullet', 'src/assets/bullet.png');
 }
 
 function create() {
-    // Crear submarino con física
+    // Crear submarino
     this.submarine = this.physics.add.sprite(80, 100, 'submarine');
     this.submarine.setScale(1).setOrigin(0.5, 0.5);
-    
-    // Configurar propiedades del agua
     this.submarine.body.setCollideWorldBounds(true);
-    this.submarine.body.setDrag(100, 100); // Resistencia del agua (frenado)
-    this.submarine.body.setMaxVelocity(200, 200); // Velocidad máxima
+    this.submarine.body.setDrag(0, 0); // Sin deslizamiento
+    this.submarine.body.setMaxVelocity(200, 200);
 
-    // Teclas
+    // Dirección actual
+    this.lastDirection = 'right';
+
+    // Teclado
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // Grupo de balas
+    this.bullets = this.physics.add.group();
+
+    // Eliminar balas que salen de pantalla
+    this.physics.world.on('worldbounds', function(body) {
+        if (body.gameObject) {
+            body.gameObject.destroy();
+        }
+    });
 }
 
 function update() {
     const speed = 150;
 
-    if (this.cursors.up.isDown){ //debugin para probar que las tecla de arriba se pulse
-        console.log("Tecla Presionada")
-    }
-    
     // Movimiento horizontal
     if (this.cursors.left.isDown) {
         this.submarine.body.setVelocityX(-speed);
+        this.lastDirection = 'left';
     } else if (this.cursors.right.isDown) {
         this.submarine.body.setVelocityX(speed);
+        this.lastDirection = 'right';
     } else {
         this.submarine.body.setVelocityX(0);
     }
 
-    // Movimiento vertical (flotabilidad controlada)
+    // Movimiento vertical
     if (this.cursors.up.isDown) {
-        this.submarine.body.setVelocityY(-speed * 1.5); // Subir más rápido
+        this.submarine.body.setVelocityY(-speed);
     } else if (this.cursors.down.isDown) {
-        this.submarine.body.setVelocityY(speed * 0.8); // Bajar más lento
+        this.submarine.body.setVelocityY(speed);
+    } else {
+        this.submarine.body.setVelocityY(0);
     }
+
+    // Disparo con espacio
+    if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
+        shootBullet.call(this);
+    }
+}
+
+function shootBullet() {
+    const offsetX = this.lastDirection === 'right' ? 20 : -20;
+
+    const bullet = this.bullets.create(this.submarine.x + offsetX, this.submarine.y, 'bullet');
+    bullet.setCollideWorldBounds(true);
+    bullet.body.onWorldBounds = true;
+    bullet.setVelocityX(this.lastDirection === 'right' ? 300 : -300);
+    bullet.setScale(0.5); // Ajusta si es necesario
 }
