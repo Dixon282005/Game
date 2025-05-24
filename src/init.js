@@ -1,6 +1,6 @@
 const config = {
-    width: 320*2,
-    height: 180*2,
+    width: 320*3,
+    height: 180*3,
     parent: 'container',
     type: Phaser.AUTO,
     physics: {
@@ -22,9 +22,14 @@ var game = new Phaser.Game(config);
 function preload() {
     this.load.image('submarine', 'src/assets/submar.png');
     this.load.image('bullet', 'src/assets/bullet.png');
+    this.load.image("background", "src/assets/drawed_bg.png");
 }
 
 function create() {
+    // Fondo (posición centrada)
+    this.background = this.add.image(0, 0, 'background').setOrigin(0, 0);
+    this.background.setDisplaySize(config.width, config.height); // Ajusta al tamaño del juego
+
     // Crear submarino
     this.submarine = this.physics.add.sprite(80, 100, 'submarine');
     this.submarine.setScale(1).setOrigin(0.5, 0.5);
@@ -53,12 +58,14 @@ function create() {
 function update() {
     const speed = 150;
 
-    // Movimiento horizontal
+    // Movimiento horizontal + flip
     if (this.cursors.left.isDown) {
         this.submarine.body.setVelocityX(-speed);
+        this.submarine.setFlipX(true); // Voltea a la izquierda
         this.lastDirection = 'left';
     } else if (this.cursors.right.isDown) {
         this.submarine.body.setVelocityX(speed);
+        this.submarine.setFlipX(false); // Orientación original (derecha)
         this.lastDirection = 'right';
     } else {
         this.submarine.body.setVelocityX(0);
@@ -81,7 +88,6 @@ function update() {
 
 function shootBullet() {
     const offsetX = this.lastDirection === 'right' ? 20 : -20;
-
     const bullet = this.bullets.create(this.submarine.x + offsetX, this.submarine.y, 'bullet');
     bullet.setCollideWorldBounds(true);
     bullet.body.onWorldBounds = true;
