@@ -4,190 +4,261 @@ import Enemies from "./enemies.js";
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
+        this.playerHealth = 100;
+        this.score = 0;
     }
 
     preload() {
+        // Cargar assets del jugador y UI
         this.load.image('submarine', 'src/assets/submar.png');
         this.load.image('bullet', 'src/assets/bullet.png');
-        this.load.image("background", "src/assets/drawed_bg.png");
-        this.load.image('enemy', 'src/assets/bullet.png');
+        this.load.image('background', 'src/assets/drawed_bg.png');
         this.load.image('pause', 'src/assets/pause_button.png');
+        
+        // Inicializar sistema de enemigos
+        this.enemies = new Enemies(this);
+        this.enemies.preload();
     }
 
+
+    //Estas solo en esto bro ☠️☠️☠️
+    
     create() {
-        this.background = this.add.image(0, 0, 'background').setOrigin(0, 0);
-        this.background.setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
+        // Configuración inicial
+        this.setupBackground();
+        this.setupPlayer();
+        this.setupUI();
+        this.setupControls();
+        this.setupPhysics();
+        this.setupPauseButton();
 
-        this.submarine = this.physics.add.sprite(80, 100, 'submarine').setScale(1).setOrigin(0.5);
-        this.submarine.body.setCollideWorldBounds(true);
-        this.submarine.body.setDrag(0, 0);
-        this.submarine.body.setMaxVelocity(200, 200);
+        // Inicializar enemigos (DESPUÉS de crear player y bullets)
+        this.enemies.create();
 
-        this.lastDirection = 'right';
+        // En el método create() del GameScene   
+
+        
+
+    }
+
+   // En el método create() del GameScene
+   setupBackground() {
+    this.background = this.add.image(0, 0, 'background').setOrigin(0, 0);
+    this.background.setDisplaySize(this.game.config.width, this.game.config.height);
+    
+    // Área de movimiento DEL SUBMARINO (ajustada al área azul del mar)
+    this.movementBounds = {
+        left: 80,                   // Margen izquierdo del área navegable
+        right: this.game.config.width - 80,  // Margen derecho
+        top: 120,                   // Límite superior (bajo la superficie)
+        bottom: this.game.config.height - 60 // Fondo del mar
+    };
+    
+    // Área de spawn de ENEMIGOS (más amplia que los límites del submarino)
+    this.enemySpawnBounds = {
+        left: -100,                 // Spawn fuera de pantalla por la izquierda
+        right: this.game.config.width + 100, // Spawn fuera por la derecha
+        top: 100,                   // Spawn arriba del área jugable
+        bottom: this.game.config.height - 40 // Spawn cerca del fondo
+    };
+    
+    // Pasa ambos sets de límites a los enemigos
+    this.enemies.setBounds(this.movementBounds, this.enemySpawnBounds);
+   }
+    setupPlayer() {
+        this.submarine = this.physics.add.sprite(80, 100, 'submarine')
+            .setScale(1)
+            .setOrigin(0.5)
+            .setCollideWorldBounds(true);
+        
+        this.submarine.body.setDrag(0, 0).setMaxVelocity(200, 200);
+    }
+
+    setupUI() {
+        // Texto de salud
+        this.healthText = this.add.text(16, 50, `Salud: ${this.playerHealth}`, { 
+            fontSize: '24px', 
+            fill: '#ffffff',
+            backgroundColor: '#000000'
+        }).setScrollFactor(0);
+
+        // Texto de puntuación
+        this.scoreText = this.add.text(16, 16, `Puntuación: ${this.score}`, { 
+            fontSize: '24px', 
+            fill: '#ffffff',
+            backgroundColor: '#000000'
+        }).setScrollFactor(0);
+    }
+
+    setupControls() {
+        // Controles de teclado
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE); // Tecla espacio para disparar
+        this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+        
+        // Teclas WASD alternativas
+        this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    }
 
-        this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P); // Tecla P para pausar
-
-        this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W) // Tecla W para moverse hacia arriba
-        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S) // Tecla S para moverse hacia abajo
-        this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A) // Tecla A para moverse hacia la izquierda
-        this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D) // Tecla D para moverse hacia la derecha
-
-        this.bullets = this.physics.add.group(); // Grupo de balas
-
-        this.physics.world.on('worldbounds', function(body) {
-            if (body.gameObject) {
+    setupPhysics() {
+        // Grupo de balas del jugador
+        this.bullets = this.physics.add.group();
+        
+        // Configurar colisiones con los límites del mundo
+        this.physics.world.on('worldbounds', (body) => {
+            if (body.gameObject && body.gameObject.active) {
                 body.gameObject.destroy();
             }
         });
+    }
 
-        this.enemies = new Enemies(this);
-        this.enemies.create(); // Crear enemigos
-
-        // Botón de pausa en la esquina superior derecha
-        this.pauseButton = this.add.image(this.sys.game.config.width - 30, 30, 'pause')
+    setupPauseButton() {
+        // Botón de pausa en la UI
+        this.pauseButton = this.add.image(
+            this.game.config.width - 30, 
+            30, 
+            'pause'
+        )
             .setInteractive()
             .setScale(0.5)
             .setScrollFactor(0)
             .setDepth(10);
-
-        // Acción al hacer clic
-        this.pauseButton.on('pointerdown', () => {
-            if (!this.scene.isPaused()) {
-                this.scene.launch('PauseMenu');
-                this.scene.pause();
-            }
-        });
-
-        //  Limite de movimiento del submarino (coincide con el área azul visible)
-        this.movementBounds = {
-            left: 60,
-            right: 585,
-            top: 110,
-            bottom: 385
-        };
+        
+        this.pauseButton.on('pointerdown', () => this.togglePause());
     }
 
     update() {
+        if (this.scene.isPaused()) return;
+        
+        this.handlePlayerMovement();
+        this.handleShooting();
+        this.checkPauseInput();
+    }
+
+    handlePlayerMovement() {
         const speed = 150;
+        let velocityX = 0;
+        let velocityY = 0;
 
-        // Verificar si el juego está pausado con la llave P
-        if (Phaser.Input.Keyboard.JustDown(this.keyP)) {
-            if (!this.scene.isPaused()) {
-                this.scene.launch('PauseMenu');
-                this.scene.pause();
-            }
-        }
-
-        // Movimiento horizontal del submarino
+        // Movimiento horizontal
         if (this.cursors.left.isDown || this.keyA.isDown) {
-            this.submarine.body.setVelocityX(-speed);
+            velocityX = -speed;
             this.submarine.setFlipX(true);
             this.lastDirection = 'left';
         } else if (this.cursors.right.isDown || this.keyD.isDown) {
-            this.submarine.body.setVelocityX(speed);
+            velocityX = speed;
             this.submarine.setFlipX(false);
             this.lastDirection = 'right';
-        } else {
-            this.submarine.body.setVelocityX(0);
         }
 
-        // Movimiento vertical del submarino
+        // Movimiento vertical
         if (this.cursors.up.isDown || this.keyW.isDown) {
-            this.submarine.body.setVelocityY(-speed);
+            velocityY = -speed;
         } else if (this.cursors.down.isDown || this.keyS.isDown) {
-            this.submarine.body.setVelocityY(speed);
-        } else {
-            this.submarine.body.setVelocityY(0);
+            velocityY = speed;
         }
 
-        //  Limitar la posición del submarino dentro del área permitida (borde azul)
-        this.submarine.x = Phaser.Math.Clamp(this.submarine.x, this.movementBounds.left, this.movementBounds.right);
-        this.submarine.y = Phaser.Math.Clamp(this.submarine.y, this.movementBounds.top, this.movementBounds.bottom);
+        this.submarine.body.setVelocity(velocityX, velocityY);
+        
+        // Limitar movimiento dentro de los bounds
+        this.submarine.x = Phaser.Math.Clamp(
+            this.submarine.x, 
+            this.movementBounds.left, 
+            this.movementBounds.right
+        );
+        this.submarine.y = Phaser.Math.Clamp(
+            this.submarine.y, 
+            this.movementBounds.top, 
+            this.movementBounds.bottom
+        );
+    }
 
-        // Disparar balas
+    handleShooting() {
         if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
             this.shootBullet();
         }
-
-        this.enemies.update();
     }
 
-    // Método para disparar balas
     shootBullet() {
         const offsetX = this.lastDirection === 'right' ? 20 : -20;
-        const bullet = this.bullets.create(this.submarine.x + offsetX, this.submarine.y, 'bullet');
+        const bullet = this.bullets.create(
+            this.submarine.x + offsetX, 
+            this.submarine.y, 
+            'bullet'
+        );
+        
+        bullet.setVelocityX(this.lastDirection === 'right' ? 300 : -300);
         bullet.setCollideWorldBounds(true);
         bullet.body.onWorldBounds = true;
-        bullet.setVelocityX(this.lastDirection === 'right' ? 300 : -300);
         bullet.setScale(0.5);
-    }
-
-    // Método para crear el overlay de pausa
-    showPauseOverlay() {
-        this.pauseText.setVisible(true);
-
-        this.input.once('pointerdown', () => {
-            this.scene.resume();
-            this.physics.resume();
-            this.pauseText.setVisible(false);
+        
+        // Auto-destrucción después de 1 segundo
+        this.time.delayedCall(1000, () => {
+            if (bullet.active) bullet.destroy();
         });
     }
 
-    // Metodo para mostrar el menú de pausa
-    showPauseMenu() {
-        // Fondo oscuro translúcido
-        this.pauseOverlay = this.add.rectangle(
-            this.sys.game.config.width / 2,
-            this.sys.game.config.height / 2,
-            this.sys.game.config.width,
-            this.sys.game.config.height,
-            0x000000,
-            0.6
-        ).setDepth(50);
-
-        // Botón Reanudar
-        this.resumeButton = this.add.text(this.sys.game.config.width / 2, 100, 'Reanudar', {
-            fontSize: '24px',
-            fill: '#ffffff',
-            backgroundColor: '#007700',
-            padding: { x: 20, y: 10 }
-        }).setOrigin(0.5).setInteractive().setDepth(51);
-
-        this.resumeButton.on('pointerdown', () => {
-            this.resumeGame();
-        });
-
-        // Botón Salir
-        this.exitButton = this.add.text(this.sys.game.config.width / 2, 160, 'Salir', {
-            fontSize: '24px',
-            fill: '#ffffff',
-            backgroundColor: '#770000',
-            padding: { x: 20, y: 10 }
-        }).setOrigin(0.5).setInteractive().setDepth(51);
-
-        this.exitButton.on('pointerdown', () => {
-            this.scene.stop(); // Detener GameScene
-            this.scene.start('MainMenu'); // Ir al menú principal
-        });
-
-        if (Phaser.Input.Keyboard.JustDown(this.keyEsc) && !this.isPaused) {
-            this.physics.pause();              // Detener físicas
-            this.isPaused = true;             // Marcar como pausado
-            this.showPauseMenu();             // Mostrar menú
+    checkPauseInput() {
+        if (Phaser.Input.Keyboard.JustDown(this.keyP)) {
+            this.togglePause();
         }
     }
 
-    // Método para reanudar el juego
-    resumeGame() {
-        this.scene.resume();
-        this.physics.resume();
-
-        // Eliminar elementos del menú
-        this.pauseOverlay.destroy();
-        this.resumeButton.destroy();
-        this.exitButton.destroy();
+    togglePause() {
+        if (this.scene.isPaused()) {
+            this.scene.resume();
+        } else {
+            this.scene.launch('PauseMenu');
+            this.scene.pause();
+        }
     }
 
+    // Métodos requeridos por el sistema de enemigos
+    playerTakeDamage(damage) {
+        this.playerHealth -= damage;
+        this.healthText.setText(`Salud: ${this.playerHealth}`);
+        
+        // Feedback visual
+        this.submarine.setTint(0xff0000);
+        this.time.delayedCall(200, () => this.submarine.clearTint());
+        
+        // Verificar game over
+        if (this.playerHealth <= 0) {
+            this.gameOver();
+        }
+    }
+
+    updateScore(points) {
+        this.score += points;
+        this.scoreText.setText(`Puntuación: ${this.score}`);
+    }
+
+    gameOver() {
+        this.physics.pause();
+        this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            'GAME OVER',
+            { 
+                fontSize: '64px', 
+                fill: '#ff0000',
+                fontStyle: 'bold'
+            }
+        ).setOrigin(0.5);
+        
+        // Opción para reiniciar
+        const restartText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 100,
+            'Presiona R para reiniciar',
+            { fontSize: '32px', fill: '#ffffff' }
+        ).setOrigin(0.5);
+        
+        this.input.keyboard.once('keydown-R', () => {
+            this.scene.restart();
+        });
+    }
 }

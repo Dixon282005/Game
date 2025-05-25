@@ -14,7 +14,11 @@ const config = {
             debug: true
         }
     },
-    scene: [MainMenu, GameScene, PauseMenu] // Usa las escenas como un array
+    scene: [MainMenu, GameScene, PauseMenu], // Usa las escenas como un array
+    
+    audio: {
+        disableWebAudio: false // Asegura que el audio esté habilitado
+    }
 };
 
 var game = new Phaser.Game(config);
