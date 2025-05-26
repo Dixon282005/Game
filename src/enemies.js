@@ -2,12 +2,12 @@ export default class Enemies {
     constructor(scene) {
         this.scene = scene;
         this.enemies = this.scene.physics.add.group();
-        this.spawnTimer = null;
         this.currentWave = 0;
-        this.enemiesInWave = 0;
+        this.totalEnemiesInWave = 0;
+        this.enemiesSpawned = 0;
         this.enemiesDefeated = 0;
-        this.waveComplete = false;
-        this.waveCooldown = false;
+        this.spawnTimer = null;
+        this.waveDelay = null;
 
         // Configuración de tipos de enemigos
         this.enemyTypes = [
@@ -78,36 +78,13 @@ export default class Enemies {
             this
         );
 
-        this.startNextWave();
+        this.startFirstWave();
     }
 
-    startNextWave() {
-        if (this.waveCooldown) return;
-        
-        this.currentWave++;
-        this.enemiesInWave = this.calculateEnemiesCount(this.currentWave);
-        this.enemiesDefeated = 0;
-        this.waveComplete = false;
-        this.waveCooldown = true;
-
-        this.showWaveText(this.currentWave);
-        this.setupSpawnTimer(this.currentWave);
-
-        // Liberar el cooldown después de spawnear todos
-        this.scene.time.delayedCall(
-            this.enemiesInWave * this.getSpawnDelay(this.currentWave), 
-            () => { this.waveCooldown = false; }
-        );
-    }
-
+    // Función añadida para calcular enemigos por oleada
     calculateEnemiesCount(wave) {
-        return 5 + Math.floor(wave * 1.5) + Math.floor(wave / 3);
+        return 5 + (wave * 2) + Math.floor(wave / 2);
     }
-
-    getSpawnDelay(wave) {
-        return Phaser.Math.Clamp(1500 - (wave * 80), 600, 1500);
-    }
-
     showWaveText(waveNumber) {
         const waveText = this.scene.add.text(
             this.scene.cameras.main.centerX,
@@ -131,35 +108,69 @@ export default class Enemies {
             onComplete: () => waveText.destroy()
         });
     }
+    startFirstWave() {
+        this.currentWave = 0;
+        this.startNextWave();
+    }
 
-    setupSpawnTimer(wave) {
+    startNextWave() {
+        this.clearTimers();
+        
+        this.currentWave++;
+        this.totalEnemiesInWave = this.calculateEnemiesCount(this.currentWave);
+        this.enemiesSpawned = 0;
+        this.enemiesDefeated = 0;
+
+        console.log(`COMENZANDO OLEADA ${this.currentWave} con ${this.totalEnemiesInWave} enemigos`);
+
+        this.showWaveText(this.currentWave);
+        this.startSpawning();
+    }
+
+    clearTimers() {
         if (this.spawnTimer) {
             this.spawnTimer.destroy();
+            this.spawnTimer = null;
         }
+        if (this.waveDelay) {
+            this.waveDelay.destroy();
+            this.waveDelay = null;
+        }
+    }
 
+    startSpawning() {
+        const spawnDelay = Phaser.Math.Clamp(1200 - (this.currentWave * 80), 600, 1200);
+        
         this.spawnTimer = this.scene.time.addEvent({
-            delay: this.getSpawnDelay(wave),
-            callback: this.spawnEnemy,
+            delay: spawnDelay,
+            callback: () => {
+                if (this.enemiesSpawned < this.totalEnemiesInWave) {
+                    this.spawnEnemy();
+                    this.enemiesSpawned++;
+                    console.log(`Enemigos generados: ${this.enemiesSpawned}/${this.totalEnemiesInWave}`);
+                    
+                    if (this.enemiesSpawned >= this.totalEnemiesInWave) {
+                        this.spawnTimer.destroy();
+                    }
+                }
+            },
             callbackScope: this,
             loop: true
         });
     }
 
     spawnEnemy() {
-        if (this.enemiesInWave <= 0 || this.waveComplete) {
-            this.spawnTimer.destroy();
-            return;
-        }
-
         const type = this.selectEnemyType();
         const { x, y, side } = this.getSpawnPosition();
-        this.createEnemy(x, y, side, type);
-
-        this.enemiesInWave--;
-
-        if (this.enemiesInWave <= 0) {
-            this.spawnTimer.destroy();
-        }
+        
+        const enemy = this.enemies.create(x, y, type.key);
+        enemy.setScale(type.scale)
+            .setData('type', type.key)
+            .setData('points', type.points * this.currentWave)
+            .setData('damage', type.damage);
+        
+        enemy.health = Math.floor(type.health * (1 + (this.currentWave * 0.1)));
+        this.setEnemyBehavior(enemy, side, type);
     }
 
     selectEnemyType() {
@@ -181,17 +192,6 @@ export default class Enemies {
             this.playerBounds.bottom - 50
         );
         return { x, y, side };
-    }
-
-    createEnemy(x, y, side, type) {
-        const enemy = this.enemies.create(x, y, type.key);
-        enemy.setScale(type.scale)
-            .setData('type', type.key)
-            .setData('points', type.points * this.currentWave)
-            .setData('damage', type.damage);
-        
-        enemy.health = Math.floor(type.health * (1 + (this.currentWave * 0.1)));
-        this.setEnemyBehavior(enemy, side, type);
     }
 
     setEnemyBehavior(enemy, side, type) {
@@ -240,29 +240,30 @@ export default class Enemies {
     }
 
     destroyEnemy(enemy) {
+        if (!enemy.active) return;
+
         this.scene.updateScore(enemy.getData('points'));
-        this.enemies.killAndHide(enemy);
         enemy.destroy();
         this.enemiesDefeated++;
+
+        console.log(`Enemigos derrotados: ${this.enemiesDefeated}/${this.totalEnemiesInWave}`);
 
         this.checkWaveCompletion();
     }
 
-    checkWaveCompletion() {
-        const totalEnemies = this.calculateEnemiesCount(this.currentWave);
+    checkWaveCompletion() {   
+            this.waveDelay = this.scene.time.delayedCall(3000, () => {
+                if (this.enemiesSpawned >= this.totalEnemiesInWave) {
+                    this.startNextWave();
+                } else {
+                    this.scene.time.delayedCall(1000, () => this.checkWaveCompletion());
+                }
+            });
         
-        if (this.enemiesDefeated >= totalEnemies && this.enemiesInWave <= 0) {
-            this.waveComplete = true;
-            
-            // Esperar a que no haya enemigos activos
-            const aliveEnemies = this.enemies.getChildren().filter(e => e.active).length;
-            
-            if (aliveEnemies === 0) {
-                this.scene.time.delayedCall(3000, () => this.startNextWave());
-            } else {
-                this.scene.time.delayedCall(1000, () => this.checkWaveCompletion());
-            }
-        }
+    }
+
+    getAliveEnemiesCount() {
+        return this.enemies.getChildren().filter(e => e.active).length;
     }
 
     handleSubmarineCollision(submarine, enemy) {
@@ -270,13 +271,11 @@ export default class Enemies {
 
         this.scene.playerTakeDamage(enemy.getData('damage'));
         
-        // Feedback visual
         submarine.setTint(0xff0000);
         this.scene.time.delayedCall(200, () => {
             if (submarine.active) submarine.clearTint();
         });
         
-        this.enemies.killAndHide(enemy);
         enemy.destroy();
     }
 
@@ -292,17 +291,13 @@ export default class Enemies {
                 enemy.x > this.bounds.right + 300 ||
                 enemy.y < this.bounds.top - 300 || 
                 enemy.y > this.bounds.bottom + 300) {
-                this.enemies.killAndHide(enemy);
                 enemy.destroy();
             }
         });
     }
 
     stop() {
-        if (this.spawnTimer) {
-            this.spawnTimer.destroy();
-            this.spawnTimer = null;
-        }
+        this.clearTimers();
     }
 
     destroy() {
