@@ -26,7 +26,12 @@ export default class MusicController {
                 this.playNextTrack();
             }
         });
+
+        // Escuchar eventos de pausa/reanudación
+        this.scene.events.on('pause', () => this.stop());
+        this.scene.events.on('resume', () => this.startPlaylist());
     }
+
 
     startPlaylist() {
         if (this.currentMusic) {
