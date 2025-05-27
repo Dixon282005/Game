@@ -30,30 +30,31 @@ export default class GameScene extends Phaser.Scene {
     //Estas solo en esto bro ☠️☠️☠️
 
     create() {
+        // Salud y puntuación inicial
+        this.maxHealth = 100;
+        this.playerHealth = this.maxHealth;
+        this.score = 0;
+
         // Configuración inicial
         this.setupBackground();
         this.setupPlayer();
+        this.highScore = this.highScore || 0;
         this.setupUI();
         this.setupControls();
         this.setupPhysics();
         this.setupPauseButton();
 
-        // Inicializar enemigos (DESPUÉS de crear player y bullets)
-        //this.enemies = new Enemies(this);  EXPERIMENTAL NO BORRAR
-        //this.enemies.setBounds(this.movementBounds, this.enemySpawnBounds);
-        this.enemies.create();
-        // En el método create() del GameScene 
+        // Inicializar enemigos correctamente
+        this.enemies = new Enemies(this); // Asegúrate de crear nueva instancia
+        this.enemies.setBounds(this.movementBounds, this.enemySpawnBounds); // Si aplica
+        this.enemies.create(); // Llama al método interno del sistema de enemigos
 
         this.music.init();
-        this.music.startPlaylist(); // Esto ahora funcionará correctamente
+        this.music.startPlaylist();
 
-        // Si necesitas parar la música en pausa:
         this.events.on('pause', () => this.music.stop());
         this.events.on('resume', () => this.music.startPlaylist());
-
     }
-
-
 
     setupBackground() {
         this.background = this.add.image(0, 0, 'background').setOrigin(0, 0);
@@ -92,17 +93,23 @@ export default class GameScene extends Phaser.Scene {
     setupUI() {
         // Texto de salud
         this.healthText = this.add.text(16, 50, `Salud: ${this.playerHealth}`, {
-            fontSize: '24px',
+            fontSize: '18px',
             fill: '#ffffff',
-            backgroundColor: '#000000'
         }).setScrollFactor(0);
 
         // Texto de puntuación
         this.scoreText = this.add.text(16, 16, `Puntuación: ${this.score}`, {
-            fontSize: '24px',
+            fontSize: '18px',
             fill: '#ffffff',
-            backgroundColor: '#000000'
         }).setScrollFactor(0);
+
+        // Texto de récord
+        this.highScoreText = this.add.text(16, 84, `Récord: ${this.highScore}`, {
+            fontSize: '18px',
+            fill: '#000000',
+            backgroundColor: '#eaf4f4',
+        }).setScrollFactor(0);
+
     }
 
     setupControls() {
@@ -238,9 +245,14 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // Métodos requeridos por el sistema de enemigos
     playerTakeDamage(damage) {
         this.playerHealth -= damage;
+
+        if (this.playerHealth < 0) {
+            this.playerHealth = 0;
+        }
+
+        // Actualizar texto de salud con el valor corregido
         this.healthText.setText(`Salud: ${this.playerHealth}`);
 
         // Feedback visual
@@ -248,10 +260,11 @@ export default class GameScene extends Phaser.Scene {
         this.time.delayedCall(200, () => this.submarine.clearTint());
 
         // Verificar game over
-        if (this.playerHealth <= 0) {
+        if (this.playerHealth === 0) {
             this.gameOver();
         }
     }
+
 
     updateScore(points) {
         this.score += points;
@@ -260,6 +273,13 @@ export default class GameScene extends Phaser.Scene {
 
     gameOver() {
         this.physics.pause();
+
+        // Verificar y actualizar récord si es necesario
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('highScore', this.highScore);
+        }
+
         this.add.text(
             this.cameras.main.centerX,
             this.cameras.main.centerY,
@@ -282,5 +302,10 @@ export default class GameScene extends Phaser.Scene {
         this.input.keyboard.once('keydown-R', () => {
             this.scene.restart();
         });
+
+        if (this.enemies) {
+            this.enemies.stop();    // Detener timers de oleadas
+            this.enemies.destroy(); // Eliminar todos los enemigos activos
+        }
     }
 }
