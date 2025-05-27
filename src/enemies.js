@@ -45,9 +45,9 @@ export default class Enemies {
     }
 
     preload() {
-        this.scene.load.image('enemy_basic', 'src/assets/enemies2.png');
-        this.scene.load.image('enemy_fast', 'src/assets/enemies2.png');
-        this.scene.load.image('enemy_tank', 'src/assets/enemies2.png');
+        this.scene.load.image('enemy_basic', 'src/assets/enemies_cut.png');
+        this.scene.load.image('enemy_fast', 'src/assets/enemies_cut.png');
+        this.scene.load.image('enemy_tank', 'src/assets/enemies_cut.png');
     }
 
     setBounds(playerBounds, spawnBounds) {
