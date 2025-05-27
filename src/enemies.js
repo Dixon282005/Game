@@ -45,9 +45,9 @@ export default class Enemies {
     }
 
     preload() {
-        this.scene.load.image('enemy_basic', 'src/assets/bullet.png');
-        this.scene.load.image('enemy_fast', 'src/assets/bullet.png');
-        this.scene.load.image('enemy_tank', 'src/assets/bullet.png');
+        this.scene.load.image('enemy_basic', 'src/assets/enemies2.png');
+        this.scene.load.image('enemy_fast', 'src/assets/enemies2.png');
+        this.scene.load.image('enemy_tank', 'src/assets/enemies2.png');
     }
 
     setBounds(playerBounds, spawnBounds) {
@@ -117,6 +117,33 @@ export default class Enemies {
         this.clearTimers();
         
         this.currentWave++;
+
+        // Subir 10 puntos de vida si tiene 90 o menos
+        if (this.scene.playerHealth <= 90) {
+            this.scene.playerHealth += 10;
+            this.scene.healthText.setText(`Salud: ${this.scene.playerHealth}`);
+
+            // Mostrar texto flotante de curación
+            const healText = this.scene.add.text(
+                this.scene.submarine.x,
+                this.scene.submarine.y - 40,
+                '+10 Salud',
+                {
+                    fontSize: '20px',
+                    fill: '#00ff00',
+                    fontStyle: 'bold'
+                }
+            ).setOrigin(0.5).setDepth(10);
+
+            this.scene.tweens.add({
+                targets: healText,
+                y: healText.y - 30,
+                alpha: 0,
+                duration: 1000,
+                onComplete: () => healText.destroy()
+            });
+        }
+
         this.totalEnemiesInWave = this.calculateEnemiesCount(this.currentWave);
         this.enemiesSpawned = 0;
         this.enemiesDefeated = 0;
@@ -170,6 +197,11 @@ export default class Enemies {
             .setData('damage', type.damage);
         
         enemy.health = Math.floor(type.health * (1 + (this.currentWave * 0.1)));
+
+        if (side === 'left') {
+            enemy.setFlipX(true);
+        }
+
         this.setEnemyBehavior(enemy, side, type);
     }
 
