@@ -1,98 +1,64 @@
-export default class MusicManager {
+export default class MusicController {
     constructor(scene) {
         this.scene = scene;
-        this.tracks = {
-            first: null,
-            second: null
-        };
-        this.currentTrack = null;
-        this.volume = 0.7;
-        this.isPlaying = false;
+        this.tracks = [];
+        this.currentTrackIndex = 0;
+        this.currentMusic = null;
+        this.volume = 0.5;
+        this.fadeDuration = 1500;
     }
 
     preload() {
-        // Carga los soundtracks con manejo de errores
-        try {
-            this.scene.load.audio('soundtrack1', 'src/assets/audio/soundtrack1.mp3');
-            this.scene.load.audio('soundtrack2', 'src/assets/audio/soundtrack2.mp3');
-            return true;
-        } catch (error) {
-            console.error("Error loading audio files:", error);
-            return false;
+        // Carga solo 2 pistas como en tu versión original
+        for (let i = 1; i <= 2; i++) {
+            const trackKey = `soundtrack${i}`;
+            this.scene.load.audio(trackKey, [
+                `src/assets/audio/soundtrack${i}.mp3`,
+                `src/assets/audio/soundtrack${i}.ogg`
+            ]);
+            this.tracks.push(trackKey);
         }
     }
 
-    playInfiniteLoop() {
-        // Verifica si los archivos están cargados
-        if (!this.scene.sound.get('soundtrack1') || !this.scene.sound.get('soundtrack2')) {
-            console.error("Audio files not loaded yet");
-            return;
-        }
-
-        // Crea las instancias de audio si no existen
-        if (!this.tracks.first) {
-            this.tracks.first = this.scene.sound.add('soundtrack1', {
-                volume: this.volume,
-                loop: false
-            });
-        }
-
-        if (!this.tracks.second) {
-            this.tracks.second = this.scene.sound.add('soundtrack2', {
-                volume: this.volume,
-                loop: false
-            });
-        }
-
-        // Detener cualquier reproducción actual
-        this.stopAll();
-
-        // Comienza con la primera pista
-        this.currentTrack = this.tracks.first;
-        this.currentTrack.play();
-        this.isPlaying = true;
-
-        // Configura el manejador de finalización
-        this.currentTrack.on('complete', () => {
-            this.playNextInSequence();
+    init() {
+        this.scene.sound.on('complete', (sound) => {
+            if (this.tracks.includes(sound.key)) {
+                this.playNextTrack();
+            }
         });
     }
 
-    playNextInSequence() {
-        if (!this.isPlaying) return;
+    startPlaylist() {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
+        }
+        this.currentTrackIndex = 0;
+        this.playNextTrack();
+    }
 
-        // Alterna entre las dos pistas
-        this.currentTrack = (this.currentTrack === this.tracks.first) 
-            ? this.tracks.second 
-            : this.tracks.first;
+    playNextTrack() {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
+        }
 
-        // Reproduce la siguiente pista
-        this.currentTrack.play();
-
-        // Vuelve a configurar el manejador
-        this.currentTrack.on('complete', () => {
-            this.playNextInSequence();
+        const trackKey = this.tracks[this.currentTrackIndex];
+        this.currentMusic = this.scene.sound.add(trackKey, {
+            volume: this.volume,
+            loop: false
         });
+        
+        this.currentMusic.play();
+        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.tracks.length;
     }
 
-    stopAll() {
-        this.isPlaying = false;
-        
-        if (this.currentTrack) {
-            this.currentTrack.off('complete');
-            this.currentTrack.stop();
+    stop() {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
         }
-        
-        if (this.tracks.first) this.tracks.first.stop();
-        if (this.tracks.second) this.tracks.second.stop();
-        
-        this.currentTrack = null;
     }
 
-    setVolume(volume) {
-        this.volume = Phaser.Math.Clamp(volume, 0, 1);
-        if (this.currentTrack) {
-            this.currentTrack.setVolume(this.volume);
-        }
+    destroy() {
+        this.stop();
+        this.scene.sound.off('complete');
     }
 }
