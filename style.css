@@ -1,0 +1,63 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    /*background-image: url("src/assets/background_sea.jpg");*/
+    background-color: #001f3f;
+    /* Azul oscuro como el mar */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    border: 2px solid #00aaff;
+}
+
+#controls-table {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 180px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+    padding: 10px 8px;
+    border-radius: 8px;
+    font-family: sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 0 0 5px #00aaff;
+    z-index: 100;
+}
+
+#controls-table h2 {
+    font-size: 14px;
+    margin: 0 0 8px;
+    text-align: center;
+    color: #00aaff;
+}
+
+#controls-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#controls-table th,
+#controls-table td {
+    padding: 4px;
+    text-align: left;
+}
+
+#controls-table th {
+    font-size: 13px;
+    color: #00ccff;
+    border-bottom: 1px solid #00aaff;
+}
