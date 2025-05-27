@@ -4,7 +4,7 @@ export default class MainMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background', 'src/assets/drawed_bg.png');
+        this.load.image('background', 'src/assets/img/drawed_bg.png');
     }
 
     create() {
@@ -17,14 +17,16 @@ export default class MainMenu extends Phaser.Scene {
         this.add.text(this.sys.game.config.width / 2, 80, 'SeaQuest 2.0', {
             fontSize: '42px',
             fill: '#ffffff',
-            fontFamily: 'Arial'
+            fontFamily: 'Arial',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
 
         // Texto para iniciar
         this.add.text(this.sys.game.config.width / 2, 150, 'Presiona ENTER para comenzar', {
             fontSize: '25px',
             fill: '#ffffff',
-            fontFamily: 'Arial'
+            fontFamily: 'Arial',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
 
         // Captura de la tecla ENTER
