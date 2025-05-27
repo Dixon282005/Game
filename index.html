@@ -3,38 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>SeaQuest</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            /*background-image: url("src/assets/background_sea.jpg");*/
-            background-color: #001f3f; /* Azul oscuro como el mar */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-           
-        }
-
-        #container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        
-
-        }
-
-        canvas {
-            border: 2px solid #00aaff;
-        }
-    </style>
 </head>
 <body>
     <div id="container">
+        <div id="controls-table">
+            <h2>Controles del Juego</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Acción</th>
+                    <th>Tecla(s)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Mover arriba</td>
+                    <td>W / Flecha ↑</td>
+                </tr>
+                <tr>
+                    <td>Mover abajo</td>
+                    <td>S / Flecha ↓</td>
+                </tr>
+                <tr>
+                    <td>Mover izquierda</td>
+                    <td>A / Flecha ←</td>
+                </tr>
+                <tr>
+                    <td>Mover derecha</td>
+                    <td>D / Flecha →</td>
+                </tr>
+                <tr>
+                    <td>Disparar</td>
+                    <td>Espacio</td>
+                </tr>
+                <tr>
+                    <td>Pausar</td>
+                    <td>P</td>
+                </tr>
+                <tr>
+                    <td>Reiniciar</td>
+                    <td>R (después de perder)</td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+
 
     <script src="./node_modules/phaser/dist/phaser.js"></script>
     <script type="module" src="./src/init.js"></script>
+
     </div>
 </body>
 </html>
