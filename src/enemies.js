@@ -45,9 +45,9 @@ export default class Enemies {
     }
 
     preload() {
-        this.scene.load.image('enemy_basic', 'src/assets/enemies_cut.png');
-        this.scene.load.image('enemy_fast', 'src/assets/enemies_cut.png');
-        this.scene.load.image('enemy_tank', 'src/assets/enemies_cut.png');
+        this.scene.load.image('enemy_basic', 'src/assets/img/enemies_cut.png');
+        this.scene.load.image('enemy_fast', 'src/assets/img/enemies_cut.png');
+        this.scene.load.image('enemy_tank', 'src/assets/img/enemies_cut.png');
     }
 
     setBounds(playerBounds, spawnBounds) {
@@ -89,7 +89,7 @@ export default class Enemies {
         const waveText = this.scene.add.text(
             this.scene.cameras.main.centerX,
             100,
-            `OLEADA ${waveNumber}`,
+            `NIVEL ${waveNumber}`, // Aqui iba la palabra OLEADA y la cambie por NIVEL
             { 
                 fontSize: '48px', 
                 fill: '#ffffff',
@@ -253,7 +253,7 @@ export default class Enemies {
 
             case 'direct':
             default:
-                velocityY = Phaser.Math.Between(-20, 20);
+                velocityY = 0;
                 break;
         }
 
