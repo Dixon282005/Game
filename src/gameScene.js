@@ -12,10 +12,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     async preload() {
-        this.load.image('submarine', 'src/assets/submar_cut.png');
-        this.load.image('bullet', 'src/assets/bullet_cut.png');
-        this.load.image('background', 'src/assets/drawed_bg.png');
-        this.load.image('pause', 'src/assets/pause_button.png');
+        this.load.image('submarine', 'src/assets/img/submar_cut.png');
+        this.load.image('bullet', 'src/assets/img/bullet_cut.png');
+        this.load.image('background', 'src/assets/img/drawed_bg.png');
+        this.load.image('pause', 'src/assets/img/pause_button.png');
 
         // Inicializar sistema de enemigos
         this.enemies = new Enemies(this);
@@ -91,26 +91,66 @@ export default class GameScene extends Phaser.Scene {
     }
 
     setupUI() {
-        // Texto de salud
-        this.healthText = this.add.text(16, 50, `Salud: ${this.playerHealth}`, {
+        // Puntuación
+        this.scoreText = this.add.text(16, 16, `Points: ${this.score}`, {
             fontSize: '18px',
             fill: '#ffffff',
         }).setScrollFactor(0);
 
-        // Texto de puntuación
-        this.scoreText = this.add.text(16, 16, `Puntuación: ${this.score}`, {
-            fontSize: '18px',
-            fill: '#ffffff',
-        }).setScrollFactor(0);
-
-        // Texto de récord
-        this.highScoreText = this.add.text(16, 84, `Récord: ${this.highScore}`, {
+        this.highScoreText = this.add.text(16, 44, `Record: ${this.highScore}`, {
             fontSize: '18px',
             fill: '#000000',
             backgroundColor: '#eaf4f4',
         }).setScrollFactor(0);
 
+        // Oxígeno
+        const barWidth = 200;
+        const barHeight = 20;
+        const x = (this.game.config.width / 2) - (barWidth / 2);
+        const y = this.game.config.height - 40;
+
+        // Borde negro
+        this.oxygenBarBorder = this.add.graphics();
+        this.oxygenBarBorder.lineStyle(2, 0x000000, 1); // Grosor 2px, negro, opacidad 100%
+        this.oxygenBarBorder.strokeRect(x - 1, y - 1, barWidth + 2, barHeight + 2);
+
+        // Contenedor de fondo
+        this.oxygenBarBackground = this.add.graphics();
+        this.oxygenBarBackground.fillStyle(0x444444, 1);
+        this.oxygenBarBackground.fillRect(x, y, barWidth, barHeight);
+
+        // Barra dinámica (cambia con oxígeno actual)
+        this.oxygenBar = this.add.graphics();
+        this.oxygenBar.setScrollFactor(0);
+
+        this.oxygenBarPosition = { x, y, width: barWidth, height: barHeight };
+        this.maxOxygen = 100;
+        this.currentOxygen = this.maxOxygen;
+
+        this.updateOxygenBar();
+
+        // Texto "OXYGEN" al lado izquierdo de la barra
+        this.oxygenLabel = this.add.text(
+            x - 80, // un poco a la izquierda del borde
+            y + 2,  // alineado verticalmente
+            'OXYGEN',
+            {
+                fontSize: '16px',
+                fill: '#000000',
+                fontStyle: 'bold'
+            }
+        ).setScrollFactor(0);
     }
+
+    updateOxygenBar() {
+        const { x, y, width, height } = this.oxygenBarPosition;
+        const percentage = Phaser.Math.Clamp(this.currentOxygen / this.maxOxygen, 0, 1);
+
+        this.oxygenBar.clear();
+        this.oxygenBar.fillStyle(0x00bfff, 1); // Azul claro
+        this.oxygenBar.fillRect(x, y, width * percentage, height);
+    }
+
 
     setupControls() {
         // Controles de teclado
@@ -246,29 +286,33 @@ export default class GameScene extends Phaser.Scene {
     }
 
     playerTakeDamage(damage) {
-        this.playerHealth -= damage;
+        this.currentOxygen -= damage;
 
-        if (this.playerHealth < 0) {
-            this.playerHealth = 0;
+        if (this.currentOxygen < 0) {
+            this.currentOxygen = 0;
         }
 
-        // Actualizar texto de salud con el valor corregido
-        this.healthText.setText(`Salud: ${this.playerHealth}`);
+        this.updateOxygenBar();
 
         // Feedback visual
         this.submarine.setTint(0xff0000);
         this.time.delayedCall(200, () => this.submarine.clearTint());
 
         // Verificar game over
-        if (this.playerHealth === 0) {
+        if (this.currentOxygen === 0) {
             this.gameOver();
         }
+    }
+
+    replenishOxygen(amount) {
+        this.currentOxygen = Phaser.Math.Clamp(this.currentOxygen + amount, 0, this.maxOxygen);
+        this.updateOxygenBar();
     }
 
 
     updateScore(points) {
         this.score += points;
-        this.scoreText.setText(`Puntuación: ${this.score}`);
+        this.scoreText.setText(`Points: ${this.score}`);
     }
 
     gameOver() {
