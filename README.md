@@ -1,15 +1,15 @@
-# 🌊 SeaQuest Remastered
+# SeaQuest Remastered
 
 Un homenaje moderno al clásico **SeaQuest (Atari, 1983)**. 
 Sumérgete en un mar lleno de peligros, enemigos submarinos y retos crecientes. ¡Pilota tu submarino, esquiva amenazas y sobrevive a las oleadas infinitas!
 
-## 🎮 Historia
+## Historia
 
 En un futuro distópico, los océanos están controlados por fuerzas enemigas. Como comandante del último submarino de la resistencia, tu misión es destruir a los invasores y sobrevivir a las profundidades. ¿Hasta qué oleada podrás llegar?
 
 ---
 
-## 🕹️ Controles
+## Controles
 
 | Acción         | Tecla                           |
 |----------------|---------------------------------|
@@ -23,7 +23,7 @@ En un futuro distópico, los océanos están controlados por fuerzas enemigas. C
 
 ---
 
-## 🚀 Instrucciones de juego
+## Instrucciones de juego
 
 - Enfrenta oleadas infinitas de enemigos submarinos.
 - Dispara para destruirlos y ganar puntos.
@@ -33,7 +33,7 @@ En un futuro distópico, los océanos están controlados por fuerzas enemigas. C
 
 ---
 
-## 🛠️ Instalación y ejecución del juego
+## Instalación y ejecución del juego
 
 ### 1. Clonar el repositorio
 
