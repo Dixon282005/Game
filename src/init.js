@@ -11,7 +11,7 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 0 },
-
+            debug: false
         }
     },
     scene: [MainMenu, GameScene, PauseMenu], // Usa las escenas como un array
