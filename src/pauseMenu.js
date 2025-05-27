@@ -18,10 +18,11 @@ export default class PauseMenu extends Phaser.Scene {
             0.6
         );
 
-        // Opciones del menú
+        // Opciones del menú: ahora con "Reiniciar"
         this.options = [
             this.add.text(centerX, 100, 'Reanudar', this.getStyle(false)).setOrigin(0.5),
-            this.add.text(centerX, 160, 'Salir', this.getStyle(false)).setOrigin(0.5)
+            this.add.text(centerX, 160, 'Reiniciar', this.getStyle(false)).setOrigin(0.5),
+            this.add.text(centerX, 220, 'Salir', this.getStyle(false)).setOrigin(0.5)
         ];
 
         this.updateSelection();
@@ -33,7 +34,6 @@ export default class PauseMenu extends Phaser.Scene {
     }
 
     update() {
-        // Navegar por opciones
         if (Phaser.Input.Keyboard.JustDown(this.keyUp)) {
             this.selectedIndex = (this.selectedIndex - 1 + this.options.length) % this.options.length;
             this.updateSelection();
@@ -48,6 +48,8 @@ export default class PauseMenu extends Phaser.Scene {
             if (this.selectedIndex === 0) {
                 this.resumeGame();
             } else if (this.selectedIndex === 1) {
+                this.restartGame();
+            } else if (this.selectedIndex === 2) {
                 this.exitToMenu();
             }
         }
@@ -70,8 +72,14 @@ export default class PauseMenu extends Phaser.Scene {
     }
 
     resumeGame() {
-        this.scene.stop(); // Cierra este menú
-        this.scene.resume('GameScene'); // Reanuda el juego
+        this.scene.stop(); // Cierra menú
+        this.scene.resume('GameScene'); // Reanuda juego
+    }
+
+    restartGame() {
+        this.scene.stop('GameScene');
+        this.scene.stop(); // Cierra menú
+        this.scene.start('GameScene'); // Reinicia juego
     }
 
     exitToMenu() {
