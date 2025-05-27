@@ -12,8 +12,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     async preload() {
-        this.load.image('submarine', 'src/assets/submar.png');
-        this.load.image('bullet', 'src/assets/bullet.png');
+        this.load.image('submarine', 'src/assets/submar_cut.png');
+        this.load.image('bullet', 'src/assets/bullet_cut.png');
         this.load.image('background', 'src/assets/drawed_bg.png');
         this.load.image('pause', 'src/assets/pause_button.png');
 
@@ -273,6 +273,10 @@ export default class GameScene extends Phaser.Scene {
 
     gameOver() {
         this.physics.pause();
+
+        if (this.music) {
+            this.music.stop();
+        }
 
         // Verificar y actualizar récord si es necesario
         if (this.score > this.highScore) {
