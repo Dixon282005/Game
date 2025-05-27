@@ -1,11 +1,11 @@
 # SeaQuest Remastered
 
 Un homenaje moderno al clásico **SeaQuest (Atari, 1983)**. 
-Sumérgete en un mar lleno de peligros, enemigos submarinos y retos crecientes. ¡Pilota tu submarino, esquiva amenazas y sobrevive a las oleadas infinitas!
+Sumérgete en un mar lleno de peligros, enemigos submarinos y retos crecientes. ¡Pilota tu submarino, esquiva amenazas y sobrevive a los niveles infinitos!
 
 ## Historia
 
-En un futuro distópico, los océanos están controlados por fuerzas enemigas. Como comandante del último submarino de la resistencia, tu misión es destruir a los invasores y sobrevivir a las profundidades. ¿Hasta qué oleada podrás llegar?
+En un futuro distópico, los océanos están controlados por fuerzas enemigas. Como comandante del último submarino de la resistencia, tu misión es destruir a los invasores y sobrevivir a las profundidades. ¿Hasta qué nivel podrás llegar?
 
 ---
 
@@ -25,10 +25,10 @@ En un futuro distópico, los océanos están controlados por fuerzas enemigas. C
 
 ## Instrucciones de juego
 
-- Enfrenta oleadas infinitas de enemigos submarinos.
+- Enfrenta niveles infinitos de enemigos submarinos.
 - Dispara para destruirlos y ganar puntos.
 - Si un enemigo te toca, recibes daño.
-- Gana salud al pasar cada oleada.
+- Gana salud al pasar cada nivel que pase.
 - Sobrevive el mayor tiempo posible.
 
 ---
