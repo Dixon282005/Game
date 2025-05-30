@@ -58,4 +58,27 @@ npm start
 Esto abrirá el juego automáticamente en tu navegador por defecto.
 Generalmente se abrirá en http://localhost:3000/ o similar.
 
+## Pantalla de Inicio
+
+![Pantalla de Inicio](./src/assets/img/pantalla_inicio.png)
+
+## Gameplay
+
+![Gameplay](./src/assets/img/gameplay.png)
+
+## Game Over
+![Game Over](./src/assets/img/gameover.png)
+
+## Tecnologías Utilizadas
+
+- HTML5
+- CSS3
+- JavaScript
+- Phaser3
+- Git y Github
+
+### Proyecto para materia Electiva V, creado por: 
+- Dixon Ramos. C.I: 31.073.511
+- Miguel Ponce. C.I: 31.031.348
+
 
