@@ -344,7 +344,7 @@ export default class GameScene extends Phaser.Scene {
             this.cameras.main.centerX,
             this.cameras.main.centerY + 100,
             'Presiona R para reiniciar',
-            { fontSize: '32px', fill: '#ffffff' }
+            { fontSize: '32px', fill: '#ffffff', fontStyle: 'bold' }
         ).setOrigin(0.5);
 
         this.input.keyboard.once('keydown-R', () => {
